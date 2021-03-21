@@ -1,0 +1,15 @@
+plugins {
+  id 'java'
+  id "com.github.node-gradle.node" version "3.0.1"
+}
+
+node {
+  version = '14.15.4'
+  npmVersion = '7.6.3'
+  download = true
+}
+
+jar.dependsOn 'npm_run_build'
+jar {
+  from 'dist/angular-client' into 'static'
+}
