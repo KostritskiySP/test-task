@@ -5,6 +5,7 @@ import com.example.core.service.WeatherForecastService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+@CrossOrigin
 @RestController
 @RequestMapping(path = "api/weather")
 public class WeatherForecastController {
@@ -13,7 +14,7 @@ public class WeatherForecastController {
     private WeatherForecastService weatherForecastService;
 
     @GetMapping
-    public ForecastResponse getForecast(@RequestParam String cityName) {
-        return new ForecastResponse(weatherForecastService.getForecast(cityName));
+    public ForecastResponse getForecast(@RequestParam String city) {
+        return new ForecastResponse(weatherForecastService.getForecast(city));
     }
 }

@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 @Service
 public class ForecastService {
@@ -25,7 +26,7 @@ public class ForecastService {
             return null;
         }
         if (!CollectionUtils.isEmpty(forecast.getForecastItemList())) {
-            if (forecast.getForecastItemList().get(0).getDate().isBefore(LocalDateTime.now())) {
+            if (forecast.getForecastItemList().get(0).getDate().isBefore(LocalDateTime.now(ZoneOffset.UTC))) {
                 return null;
             }
         }

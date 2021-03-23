@@ -1,32 +1,33 @@
 package com.example.core.dto;
 
 import com.example.core.entity.Forecast;
-import com.example.core.entity.ForecastItem;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
-import java.util.Map;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class ForecastResponse implements Serializable {
 
-    private Map<LocalDateTime, Double> forecast;
+    private List<ForecastDataItemDto> forecast;
 
     public ForecastResponse() {
     }
 
     public ForecastResponse(Forecast forecast) {
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy - HH:mm");
         this.forecast = forecast != null
                 ? forecast.getForecastItemList().stream()
-                .collect(Collectors.toMap(ForecastItem::getDate, ForecastItem::getTemperature))
+                .map(forecastItem -> new ForecastDataItemDto(forecastItem.getDate().format(dateTimeFormatter), forecastItem.getTemperature()))
+                .collect(Collectors.toList())
                 : null;
     }
 
-    public Map<LocalDateTime, Double> getForecast() {
+    public List<ForecastDataItemDto> getForecast() {
         return forecast;
     }
 
-    public void setForecast(Map<LocalDateTime, Double> forecast) {
+    public void setForecast(List<ForecastDataItemDto> forecast) {
         this.forecast = forecast;
     }
 }

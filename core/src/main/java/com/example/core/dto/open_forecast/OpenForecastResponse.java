@@ -1,8 +1,6 @@
 package com.example.core.dto.open_forecast;
 
-import com.example.core.utils.MillisOrLocalDateTimeDeserializer;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import java.io.Serializable;
 import java.util.List;

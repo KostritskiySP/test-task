@@ -4,14 +4,19 @@ import com.example.core.component.ForecastExtenderComponent;
 import com.example.core.dto.open_forecast.OpenForecastResponse;
 import com.example.core.entity.Forecast;
 import com.example.core.entity.ForecastItem;
+import com.example.core.validation.BadRequestException;
+import com.example.core.validation.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -33,20 +38,24 @@ public class WeatherForecastService {
     @Value("${open-forecast.targetURL}")
     private String targetURL;
 
-    public Forecast getForecast(String cityName) {
-        Forecast cache = forecastService.loadCacheValues(cityName);
+    public Forecast getForecast(String city) {
+        if (!StringUtils.hasText(city)) {
+            throw new BadRequestException();
+        }
+        Forecast cache = forecastService.loadCacheValues(city);
         if (cache != null) {
             return cache;
         }
         MultiValueMap<String, String> requestParams = new LinkedMultiValueMap<>();
-        requestParams.add("q", cityName);
+        requestParams.add("q", city);
+        requestParams.add("units", "metric");
         requestParams.add("appid", apiKey);
         OpenForecastResponse response = sendRequest(requestParams);
         if (CollectionUtils.isEmpty(response.getForecastItemList())) {
             return null;
         }
         Forecast forecast = new Forecast();
-        forecast.setCity(cityName);
+        forecast.setCity(city);
         forecast.setForecastItemList(response.getForecastItemList()
                 .stream()
                 .map(forecastItemDto -> {
@@ -74,7 +83,14 @@ public class WeatherForecastService {
         RestTemplate restTemplate = new RestTemplate();
 
         ResponseEntity<OpenForecastResponse> responseEntity;
-        responseEntity = restTemplate.exchange(requestUri, HttpMethod.GET, null, OpenForecastResponse.class);
+        try {
+            responseEntity = restTemplate.exchange(requestUri, HttpMethod.GET, null, OpenForecastResponse.class);
+        } catch (HttpClientErrorException e) {
+            if (e.getRawStatusCode() == HttpStatus.NOT_FOUND.value()) {
+                throw new NotFoundException();
+            }
+            throw e;
+        }
 
         return responseEntity.getBody();
     }
