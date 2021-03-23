@@ -1,10 +1,9 @@
 package com.example.core.controller;
 
+import com.example.core.dto.ForecastResponse;
 import com.example.core.service.WeatherForecastService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping(path = "api/weather")
@@ -14,7 +13,7 @@ public class WeatherForecastController {
     private WeatherForecastService weatherForecastService;
 
     @GetMapping
-    public List<Double> getForecast(@RequestParam String cityName) {
-        return weatherForecastService.getForecast(cityName);
+    public ForecastResponse getForecast(@RequestParam String cityName) {
+        return new ForecastResponse(weatherForecastService.getForecast(cityName));
     }
 }

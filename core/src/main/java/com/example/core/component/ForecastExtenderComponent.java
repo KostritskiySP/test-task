@@ -1,43 +1,53 @@
 package com.example.core.component;
 
-import com.example.core.dto.open_forecast.ForecastDto;
+import com.example.core.entity.Forecast;
+import com.example.core.entity.ForecastItem;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Component
 public class ForecastExtenderComponent {
 
     private static final int INDEX_RANGE = 3;
+    private static final int ADDITIONAL_STEPS_NUMBER = 40;
+    private static final int HOURS_IN_STEP = 3;
 
-    public List<Double> extend(List<ForecastDto> forecastList) {
-        if (CollectionUtils.isEmpty(forecastList)) {
-            return Collections.emptyList();
+    public void extend(Forecast forecast) {
+        List<ForecastItem> forecastItemList = forecast.getForecastItemList();
+        if (CollectionUtils.isEmpty(forecastItemList)) {
+            return;
         }
-        CircularArrayList<ForecastDto> circularForecastList = new CircularArrayList<>(forecastList);
-        CircularArrayList<Double> result = forecastList.stream()
-                .map(forecast -> forecast.getValue().getTemperature())
-                .collect(Collectors.toCollection(CircularArrayList::new));
-        Function<Integer, Double> getValueFunction = (index) -> circularForecastList.get(index).getValue().getTemperature();
+        CircularArrayList<ForecastItem> circularForecastList = new CircularArrayList<>(forecastItemList);
+        CircularArrayList<ForecastItem> result = new CircularArrayList<>(forecastItemList);
+        Function<Integer, Double> getValueFunction = (index) -> circularForecastList.get(index).getTemperature();
         int size = result.size();
-        for (int indexToPredict = size - 1; indexToPredict < size + 40; indexToPredict++) {
-            result.add(makePrediction(INDEX_RANGE, getValueFunction, indexToPredict));
+        LocalDateTime date = circularForecastList.get(-1).getDate();
+        for (int indexToPredict = size; indexToPredict < size + ADDITIONAL_STEPS_NUMBER; indexToPredict++) {
+            ForecastItem forecastItem = new ForecastItem();
+            forecastItem.setForecast(forecast);
+            date = date.plusHours(HOURS_IN_STEP);
+            forecastItem.setDate(date);
+            forecastItem.setTemperature(makePrediction(INDEX_RANGE, getValueFunction, indexToPredict));
+            result.add(forecastItem);
         }
-        return result;
+        forecast.setForecastItemList(new ArrayList<>(result));
+    }
+
+    private Date addHoursToDate(Date date) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        calendar.add(Calendar.HOUR_OF_DAY, HOURS_IN_STEP);
+        return calendar.getTime();
     }
 
     public static class CircularArrayList<E> extends ArrayList<E> {
 
         public CircularArrayList(List<E> forecastList) {
             super(forecastList);
-        }
-
-        public CircularArrayList() {
         }
 
         @Override
@@ -57,13 +67,13 @@ public class ForecastExtenderComponent {
             return getValueFunction.apply(indexToPredict);
         }
         double left = 0;
-        for (int k = 1; k < indexRange + 1; k++) {
-            left += getValueFunction.apply(-k);
+        for (int offset = 1; offset < indexRange + 1; offset++) {
+            left += getValueFunction.apply(-offset);
         }
         left = (left / 3) * (1 - indexToPredict * 0.02);
         double right = 0;
-        for (int k = 1; k < indexRange + 1; k++) {
-            right += getValueFunction.apply(k);
+        for (int offset = 1; offset < indexRange + 1; offset++) {
+            right += getValueFunction.apply(offset);
         }
         right = (right / 3) * (indexToPredict * 0.02);
         return (getValueFunction.apply(indexToPredict) + left + right) / 2;
