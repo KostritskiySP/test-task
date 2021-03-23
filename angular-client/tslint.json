@@ -73,6 +73,13 @@
         "always"
       ]
     },
+    "trailing-comma": [
+      true,
+      {
+        "multiline": "always",
+        "singleline": "never"
+      }
+    ],
     "space-before-function-paren": {
       "options": {
         "anonymous": "never",

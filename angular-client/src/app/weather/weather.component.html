@@ -1,0 +1,43 @@
+<div class="container">
+  <div class="main">
+    <h3 class="header">Forecast app</h3>
+    <form
+      [formGroup]="form"
+      (ngSubmit)="getWeather(form.value)">
+      <div>
+        <input
+          class="form-control"
+          required minlength="1"
+          id="city"
+          type="text"
+          placeholder="Enter city"
+          formControlName="city"/>
+      </div>
+      <div *ngIf=badRequest class="error">
+        Fill in city
+      </div>
+      <div *ngIf=notFound class="error">
+        City not found
+      </div>
+      <div>
+        <button type="submit" class="button">
+          Get forecast
+        </button>
+      </div>
+    </form>
+  </div>
+  <ngx-charts-bar-vertical
+    class="chart"
+    [view]="[1920,900]"
+    [results]="weatherData"
+    [xAxisLabel]="'Time'"
+    [legendTitle]="'Forecast'"
+    [yAxisLabel]="'Temperature'"
+    [legend]="true"
+    [showXAxisLabel]="true"
+    [showYAxisLabel]="true"
+    [xAxis]="true"
+    [yAxis]="true"
+    [gradient]="true">
+  </ngx-charts-bar-vertical>
+</div>
