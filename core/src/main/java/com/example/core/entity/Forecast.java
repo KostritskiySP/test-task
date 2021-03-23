@@ -7,7 +7,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "Forecast")
-public class Forecast implements Serializable  {
+public class Forecast implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
